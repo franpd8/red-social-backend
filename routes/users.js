@@ -5,7 +5,7 @@ const User = require("../models/User");
 const router = express.Router();
 
 router.post("/add", UserController.register);
-// router.post('/confirm', UserController.confirm)
+router.post('/confirm/:emailToken', UserController.confirm)
 router.get("/all", UserController.getAll);
 router.get("/info", authentication,UserController.getUser)
 router.get("/id/:_id", authentication, isAdmin, UserController.getById);

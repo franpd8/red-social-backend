@@ -2,10 +2,9 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const transporter = require("../config/nodemailer");
 const jwt = require("jsonwebtoken");
-// const { jwt_secret } = require("../config/keys.js");
 require("dotenv").config();
 const jwt_secret = process.env.JWT_SECRET 
-
+const PORT = process.env.PORT || 3001;
 const UserController = {
   async register(req, res,next) {
     try {
@@ -21,13 +20,17 @@ const UserController = {
         role: "user",
       });
 
-      // await transporter.sendMail({
-      //     to: req.body.email,
-      //     subject: "Confirme su registro",
-      //     html: `<h3>Bienvenido, estás a un paso de registrarte </h3>
-      //     <a href="#"> Click para confirmar tu registro</a>
-      //     `,
-      //   });
+      const emailToken = jwt.sign({email:req.body.email},jwt_secret,{expiresIn:'48h'})
+      const url = `http://localhost:${PORT}/users/confirm/${emailToken}`
+      
+
+      await transporter.sendMail({
+          to: req.body.email,
+          subject: "Confirme su registro",
+          html: `<h3>Bienvenido, estás a un paso de registrarte </h3>
+          <a href="${url}"> Click para confirmar tu registro</a>
+          `,
+        });
 
       res
         .status(201)
@@ -48,11 +51,12 @@ const UserController = {
 
     }
   },
-  // Pendiente
   async confirm(req, res) {
     try {
+      const token = req.params.emailToken
+      const payload = jwt.verify(token,jwt_secret)
       const user = await User.findByIdAndUpdate(
-        req.params._id,
+        req.payload.email,
         { confirmed: true },
         { new: true }
       );

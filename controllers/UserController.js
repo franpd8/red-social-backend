@@ -9,7 +9,11 @@ const jwt_secret = process.env.JWT_SECRET
 const UserController = {
   async register(req, res,next) {
     try {
-      const password = await bcrypt.hash(req.body.password, 10);
+      let password;
+      if(req.body.password !== undefined){
+        password =  await bcrypt.hash(req.body.password, 10)
+      }
+      
       const user = await User.create({
         ...req.body,
         password: password,

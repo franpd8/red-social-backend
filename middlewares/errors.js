@@ -20,9 +20,9 @@ const typeError = (err, req, res, next) => {
     }
 
     else if (errOrigin === "Post") {
-    res.status(500).send("Hubo un problema con un controlador de Post");
+    res.status(500).send("Hubo un problema con el controlador de Post");
   } else if (errOrigin === "Usuario"){
-    res.status(500).send("Hubo un problema con un controlador de Usuario");
+    res.status(500).send("Hubo un problema con el controlador de Usuario");
   }
 };
 module.exports = { typeError };

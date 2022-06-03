@@ -28,9 +28,9 @@ const CommentController = {
   },
   async getAllByPost(req, res) {
     try {
-      const comments = await Post.findOne(
+      const comments = await Post.findById(
         //   busca por parametro y muestra solo title y body
-        { id: req.params.id },
+         req.params._id ,
         { title: 1, body: 1 }
       )
         //   añade info del dueño del post

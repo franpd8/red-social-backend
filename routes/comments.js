@@ -1,7 +1,6 @@
 const express = require('express');
 const CommentController = require('../controllers/CommentController');
 const { authentication, isAdmin, isAuthorPost } = require('../middlewares/authentication');
-const Comment = require('../models/Comment');
 const router = express.Router()
 
 router.post('/add',authentication, CommentController.create)

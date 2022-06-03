@@ -4,7 +4,7 @@ const { authentication, isAdmin, isAuthorPost } = require('../middlewares/authen
 const Comment = require('../models/Comment');
 const router = express.Router()
 
-router.put('/add/:_id',authentication, CommentController.create)
+router.post('/add',authentication, CommentController.create)
 router.get('/post/:_id', authentication, CommentController.getAllByPost)
 router.get('/user/:_id', authentication, CommentController.getAllByUser)
 router.delete('/delete/:_id', authentication, CommentController.delete)

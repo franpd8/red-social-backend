@@ -30,6 +30,7 @@ const PostController = {
   },
   async getAll(req, res) {
     try {
+     
       const posts = await Post.find({}, { title: 1, body: 1, comments: 1 })
         .populate({ path: "userId", select: { name: 1, email: 1 } })
         .populate({

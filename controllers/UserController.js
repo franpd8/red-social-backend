@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const jwt_secret = process.env.JWT_SECRET 
 const PORT = process.env.PORT || 3001;
+// const confirmEmailHTML = require("../templates/confirmEmailHTML");
+// const fs = require("fs");
 const UserController = {
   async register(req, res,next) {
     try {
@@ -22,8 +24,11 @@ const UserController = {
 
       const emailToken = jwt.sign({email:req.body.email},jwt_secret,{expiresIn:'48h'})
       const url = `http://localhost:${PORT}/users/confirm/${emailToken}`
-      
-
+    //   const confirmEmailContent = confirmEmailHTML(
+    //     req.body.username,
+    //     req.body.email,
+    //     emailToken
+    // );
       await transporter.sendMail({
           to: req.body.email,
           subject: "Confirme su registro",
@@ -31,7 +36,7 @@ const UserController = {
           <a href="${url}"> Click para confirmar tu registro</a>
           `,
         });
-
+      // fs.writeFileSync('public/fakeEmail.html', confirmEmailContent);
       res
         .status(201)
         .send({

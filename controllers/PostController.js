@@ -30,14 +30,16 @@ const PostController = {
   },
   async getAll(req, res) {
     try {
-     
+      const { page = 1, limit = 10 } = req.query;
       const posts = await Post.find({}, { title: 1, body: 1, comments: 1 })
         .populate({ path: "userId", select: { name: 1, email: 1 } })
         .populate({
           path: "comments",
-          select:{body:1},
-          populate: {path:"userId",select: { name: 1 }}  
-        });
+          select: { body: 1 },
+          populate: { path: "userId", select: { name: 1 } },
+        })
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
 
       res.send(posts);
     } catch (error) {
@@ -68,11 +70,9 @@ const PostController = {
       res.send(posts);
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message: "Ha habido un problema al cargar los post del usuario",
-        });
+      res.status(500).send({
+        message: "Ha habido un problema al cargar los post del usuario",
+      });
     }
   },
   async getMine(req, res) {
@@ -84,11 +84,9 @@ const PostController = {
       res.send(posts);
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message: "Ha habido un problema al cargar los post del usuario",
-        });
+      res.status(500).send({
+        message: "Ha habido un problema al cargar los post del usuario",
+      });
     }
   },
   async delete(req, res) {

@@ -39,7 +39,7 @@ const PostController = {
           populate: { path: "userId", select: { name: 1 } },
         })
         .limit(limit * 1)
-        .skip((page - 1) * limit)
+        .skip((page - 1) * limit);
 
       res.send(posts);
     } catch (error) {
@@ -133,6 +133,61 @@ const PostController = {
       res
         .status(500)
         .send({ message: `Ha habido un problema al buscar el post ` });
+    }
+  },
+  async like(req, res) {
+    try {
+      const post = await Post.findOneAndUpdate(
+        {
+          _id: req.params._id,
+          likes: { $nin: req.user._id }
+        },
+        { $push: { likes: req.user._id } },
+        { new: true }
+      );
+
+      if (post){
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $push: { likedPosts: req.params._id } },
+        { new: true }
+      );
+      res.send({ message: "Like añadido al post con éxito", post });
+    } else{
+      res.send({ message: "Ya le habías dado like antes"});
+    }
+
+
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: `Ha habido un problema al dar like al post ` });
+    }
+  },
+  async unlike(req, res) {
+    try {
+      const post = await Product.findByIdAndUpdate(
+        req.params._id,
+        { $pull: { likes: req.user._id } },
+        { new: true }
+      );
+
+      if (post){
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { likedPosts: req.params._id } },
+        { new: true }
+      );
+      res.send({ message: "Like retirado del post con éxito", post });
+    } else{
+      res.send({ message: "Ya habías quitado el like antes", post });
+    }
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: `Ha habido un problema al quitar like al post ` });
     }
   },
 };

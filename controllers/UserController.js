@@ -3,18 +3,18 @@ const bcrypt = require("bcryptjs");
 const transporter = require("../config/nodemailer");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const jwt_secret = process.env.JWT_SECRET 
+const jwt_secret = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 3001;
 // const confirmEmailHTML = require("../templates/confirmEmailHTML");
 // const fs = require("fs");
 const UserController = {
-  async register(req, res,next) {
+  async register(req, res, next) {
     try {
       let password;
-      if(req.body.password !== undefined){
-        password =  await bcrypt.hash(req.body.password, 10)
+      if (req.body.password !== undefined) {
+        password = await bcrypt.hash(req.body.password, 10);
       }
-      
+
       const user = await User.create({
         ...req.body,
         password: password,
@@ -22,27 +22,27 @@ const UserController = {
         role: "user",
       });
 
-      const emailToken = jwt.sign({email:req.body.email},jwt_secret,{expiresIn:'48h'})
-      const url = `http://localhost:${PORT}/users/confirm/${emailToken}`
-    //   const confirmEmailContent = confirmEmailHTML(
-    //     req.body.username,
-    //     req.body.email,
-    //     emailToken
-    // );
+      const emailToken = jwt.sign({ email: req.body.email }, jwt_secret, {
+        expiresIn: "48h",
+      });
+      const url = `http://localhost:${PORT}/users/confirm/${emailToken}`;
+      //   const confirmEmailContent = confirmEmailHTML(
+      //     req.body.username,
+      //     req.body.email,
+      //     emailToken
+      // );
       await transporter.sendMail({
-          to: req.body.email,
-          subject: "Confirme su registro",
-          html: `<h3>Bienvenido, estás a un paso de registrarte </h3>
+        to: req.body.email,
+        subject: "Confirme su registro",
+        html: `<h3>Bienvenido, estás a un paso de registrarte </h3>
           <a href="${url}"> Click para confirmar tu registro</a>
           `,
-        });
+      });
       // fs.writeFileSync('public/fakeEmail.html', confirmEmailContent);
-      res
-        .status(201)
-        .send({
-          message: "Te hemos enviado un correo para confirmar el registro",
-          user,
-        });
+      res.status(201).send({
+        message: "Te hemos enviado un correo para confirmar el registro",
+        user,
+      });
     } catch (error) {
       console.error(error);
       // res
@@ -51,15 +51,14 @@ const UserController = {
       //     { message: "Ha habido un problema al crear el usuario" },
       //     error.message,
       //   ]);
-      error.origin = 'Usuario'
-      next(error)
-
+      error.origin = "Usuario";
+      next(error);
     }
   },
   async confirm(req, res) {
     try {
-      const token = req.params.emailToken
-      const payload = jwt.verify(token,jwt_secret)
+      const token = req.params.emailToken;
+      const payload = jwt.verify(token, jwt_secret);
       const user = await User.findByIdAndUpdate(
         req.payload.email,
         { confirmed: true },
@@ -110,7 +109,7 @@ const UserController = {
       });
     } catch (err) {
       console.log(err);
-      res.status(500).send({ message: `Ha habido un problema al conectarse`});
+      res.status(500).send({ message: `Ha habido un problema al conectarse` });
     }
   },
   async logout(req, res) {
@@ -128,19 +127,42 @@ const UserController = {
   },
   async getUser(req, res) {
     try {
-      const user = await User.findOne({ _id: req.user._id }).populate("postIds");
+      const user = await User.findOne(
+        { _id: req.user._id },
+        { name: 1 },
+        { email: 1 }
+        // trae informacion de post propios
+      ).populate({
+        path: "postIds",
+        select: { title: 1, body: 1 },
+        populate: {
+          path: "comments",
+          select: { body: 1 },
+          populate: {
+            path: "userId",
+            select: { name: 1 },
+          },
+        },
+      })
+
+      // trae informacion del post que le gusta
+      .populate({
+        path:"likedPosts",
+        select:{title:1,body:1,userId:1},
+        populate:{
+          path:"userId",
+          select:{name:1}
+        }
+
+      });
+
       //  otra forma es .findById(req.user._id)
-
-
       res.send(user);
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message:
-            "Ha habido un problema al cargar la información del usuarios",
-        });
+      res.status(500).send({
+        message: "Ha habido un problema al cargar la información del usuarios",
+      });
     }
   },
   async getAll(req, res) {
@@ -160,11 +182,9 @@ const UserController = {
       res.send(user);
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message: `Ha habido un problema al buscar el usuario con id = ${req.params._id}`,
-        });
+      res.status(500).send({
+        message: `Ha habido un problema al buscar el usuario con id = ${req.params._id}`,
+      });
     }
   },
   async getByName(req, res) {

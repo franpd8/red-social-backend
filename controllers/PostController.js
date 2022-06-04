@@ -60,7 +60,6 @@ const PostController = {
       });
     }
   },
-
   async getByUser(req, res) {
     try {
       const posts = await User.findById(req.params._id).populate({

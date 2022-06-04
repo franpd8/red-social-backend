@@ -69,7 +69,6 @@ const UserController = {
       console.error(error);
     }
   },
-
   async login(req, res) {
     try {
       // 1 - Buscar usuario
@@ -128,34 +127,38 @@ const UserController = {
   async getUser(req, res) {
     try {
       const user = await User.findOne(
-        { _id: req.user._id },
-        { name: 1 },
-        { email: 1 }
+        { _id: req.user._id }
         // trae informacion de post propios
-      ).populate({
-        path: "postIds",
-        select: { title: 1, body: 1 },
-        populate: {
-          path: "comments",
-          select: { body: 1 },
+      )
+        .populate({
+          path: "postIds",
+          select: { title: 1, body: 1 },
+          populate: {
+            path: "comments",
+            select: { body: 1 },
+            populate: {
+              path: "userId",
+              select: { name: 1 },
+            },
+          },
+        })
+        .populate({
+            path: "followers",
+            select:{name:1}
+        })
+        .populate({
+          path: "following",
+          select:{name:1}
+      })
+        // trae informacion del post que le gusta
+        .populate({
+          path: "likedPosts",
+          select: { title: 1, body: 1, userId: 1 },
           populate: {
             path: "userId",
             select: { name: 1 },
           },
-        },
-      })
-
-      // trae informacion del post que le gusta
-      .populate({
-        path:"likedPosts",
-        select:{title:1,body:1,userId:1},
-        populate:{
-          path:"userId",
-          select:{name:1}
-        }
-
-      });
-
+        });
       //  otra forma es .findById(req.user._id)
       res.send(user);
     } catch (error) {
@@ -225,33 +228,35 @@ const UserController = {
         .status(500)
         .send({ message: "Ha habido un problema al actualizar el usuario" });
     }
-  },async follow(req, res) {
+  },
+  async follow(req, res) {
     try {
-      if (req.params._id == req.user._id){
-        res.send({ message: "No puedes seguirte a ti mismo"});
-      
-      } else{
-      const follower = await User.findOneAndUpdate(
-        {
-          _id: req.params._id,
-          followers: { $nin: req.user._id }
-        },
-        { $push: { followers: req.user._id } },
-        { new: true }
-      );
+      if (req.params._id == req.user._id) {
+        res.send({ message: "No puedes seguirte a ti mismo" });
+      } else {
+        const follower = await User.findOneAndUpdate(
+          {
+            _id: req.params._id,
+            followers: { $nin: req.user._id },
+          },
+          { $push: { followers: req.user._id } },
+          { new: true }
+        );
 
-      if (follower){
-      await User.findByIdAndUpdate(
-        req.user._id,
-        { $push: { following: req.params._id } },
-        { new: true }
-      );
-      res.send({ message: "Ahora estás siguiendo a este usuario", follower });
-    } else{
-      res.send({ message: "Ya seguías a este usuario"});
-    }
-  }
-
+        if (follower) {
+          await User.findByIdAndUpdate(
+            req.user._id,
+            { $push: { following: req.params._id } },
+            { new: true }
+          );
+          res.send({
+            message: "Ahora estás siguiendo a este usuario",
+            follower,
+          });
+        } else {
+          res.send({ message: "Ya seguías a este usuario" });
+        }
+      }
     } catch (error) {
       console.error(error);
       res
@@ -264,27 +269,31 @@ const UserController = {
       const follower = await User.findOneAndUpdate(
         {
           _id: req.params._id,
-          followers: { _id: req.user._id }
+          followers: { _id: req.user._id },
         },
         { $pull: { followers: req.user._id } },
         { new: true }
       );
-
-      if (follower){
-      await User.findByIdAndUpdate(
-        req.user._id,
-        { $pull: { following: req.params._id } },
-        { new: true }
-      );
-      res.send({ message: "Has dejado de seguir a este usuario", follower });
-    } else{
-      res.send({ message: "Ya habías dejado de seguir a este usuario", post });
-    }
+      if (follower) {
+        await User.findByIdAndUpdate(
+          req.user._id,
+          { $pull: { following: req.params._id } },
+          { new: true }
+        );
+        res.send({ message: "Has dejado de seguir a este usuario", follower });
+      } else {
+        res.send({
+          message: "Ya habías dejado de seguir a este usuario",
+          post,
+        });
+      }
     } catch (error) {
       console.error(error);
       res
         .status(500)
-        .send({ message: `Ha habido un problema al dejar de seguir a este usuario` });
+        .send({
+          message: `Ha habido un problema al dejar de seguir a este usuario`,
+        });
     }
   },
 };

@@ -22,6 +22,7 @@ const UserSchema = new mongoose.Schema({
     followers: [{ type: ObjectId, ref: 'User' }],
     following:[{type: ObjectId, ref:'User'}],
     likedPosts: [{ type: ObjectId, ref: 'Post' }],
+    likedComments: [{ type: ObjectId, ref: 'Comment' }],
     postIds:[{ type: ObjectId, ref: 'Post'}],
     commentIds:[{ type: ObjectId, ref: 'Comment'}],
     

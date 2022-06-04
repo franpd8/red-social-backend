@@ -26,6 +26,20 @@ const CommentController = {
         .send([{ message: "Ha habido un problema al crear el comentario" }]);
     }
   },
+  async getAll(req, res) {
+    try {
+      const comments = await Comment.find();
+      if(comments.length === 0){
+        res.send({message:"Todavía no hay comentarios"})
+      }
+      res.send(comments);
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: "Ha habido un problema al cargar los comentarios" });
+    }
+  },
   async getAllByPost(req, res) {
     try {
       const comments = await Post.findById(
@@ -98,6 +112,8 @@ const CommentController = {
       await Post.findByIdAndUpdate(req.params._id, {
         $pull: { comments: comment._id },
       });
+      
+      
       res
         .status(201)
         .send({ message: "Comentario eliminiado con éxito", comment });
@@ -132,6 +148,61 @@ const CommentController = {
       res
         .status(500)
         .send({ message: "Ha habido un problema al actualizar el comentario" });
+    }
+  },
+  async like(req, res) {
+    try {
+      const comment = await Comment.findOneAndUpdate(
+        {
+          _id: req.params._id,
+          likes: { $nin: req.user._id }
+        },
+        { $push: { likes: req.user._id } },
+        { new: true }
+      );
+      if (comment){
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $push: { likedComments: req.params._id } },
+        { new: true }
+      );
+      res.send({ message: "Like añadido al comentario con éxito", comment });
+    } else{
+      res.send({ message: "Ya le habías dado like antes"});
+    }
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: `Ha habido un problema al dar like al post ` });
+    }
+  },
+  async unlike(req, res) {
+    try {
+      const comment = await Comment.findOneAndUpdate(
+        {
+          _id: req.params._id,
+          likes: { _id: req.user._id }
+        },
+        { $pull: { likes: req.user._id } },
+        { new: true }
+      );
+
+      if (comment){
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { likedComments: req.params._id } },
+        { new: true }
+      );
+      res.send({ message: "Like retirado del comentario con éxito", comment });
+    } else{
+      res.send({ message: "Ya habías quitado el like antes" });
+    }
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: `Ha habido un problema al quitar like al post ` });
     }
   },
 };

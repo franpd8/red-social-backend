@@ -40,7 +40,10 @@ const PostController = {
         })
         .limit(limit * 1)
         .skip((page - 1) * limit);
-
+        
+        if(posts.length === 0){
+          res.send({message:"Todavía no hay posts"})
+        }
       res.send(posts);
     } catch (error) {
       console.error(error);
@@ -92,6 +95,10 @@ const PostController = {
     try {
       const post = await Post.findByIdAndDelete(req.params._id);
       res.send({ post, message: "Post eliminado" });
+      await User.findByIdAndUpdate(
+        req.user_id,
+        { $pull: { postIds: req.params._id } }
+    );
     } catch (error) {
       console.error(error);
       res
@@ -104,6 +111,11 @@ const PostController = {
       const post = await Post.findByIdAndUpdate(req.params._id, req.body, {
         new: true,
       });
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $push: { likedPosts: req.params._id } },
+        { new: true }
+      );
       res.send({ message: "Post actualizado con éxito", post });
     } catch (error) {
       console.error(error);

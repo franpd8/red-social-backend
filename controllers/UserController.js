@@ -31,13 +31,13 @@ const UserController = {
       //     req.body.email,
       //     emailToken
       // );
-      await transporter.sendMail({
-        to: req.body.email,
-        subject: "Confirme su registro",
-        html: `<h3>Bienvenido, estás a un paso de registrarte </h3>
-          <a href="${url}"> Click para confirmar tu registro</a>
-          `,
-      });
+      // await transporter.sendMail({
+      //   to: req.body.email,
+      //   subject: "Confirme su registro",
+      //   html: `<h3>Bienvenido, estás a un paso de registrarte </h3>
+      //     <a href="${url}"> Click para confirmar tu registro</a>
+      //     `,
+      // });
       // fs.writeFileSync('public/fakeEmail.html', confirmEmailContent);
       res.status(201).send({
         message: "Te hemos enviado un correo para confirmar el registro",
@@ -171,6 +171,9 @@ const UserController = {
   async getAll(req, res) {
     try {
       const users = await User.find();
+      if(users.length === 0){
+        res.send({message:"Todavía no hay usuarios"})
+      }
       res.send(users);
     } catch (error) {
       console.error(error);

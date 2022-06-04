@@ -225,6 +225,67 @@ const UserController = {
         .status(500)
         .send({ message: "Ha habido un problema al actualizar el usuario" });
     }
+  },async follow(req, res) {
+    try {
+      if (req.params._id == req.user._id){
+        res.send({ message: "No puedes seguirte a ti mismo"});
+      
+      } else{
+      const follower = await User.findOneAndUpdate(
+        {
+          _id: req.params._id,
+          followers: { $nin: req.user._id }
+        },
+        { $push: { followers: req.user._id } },
+        { new: true }
+      );
+
+      if (follower){
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $push: { following: req.params._id } },
+        { new: true }
+      );
+      res.send({ message: "Ahora estás siguiendo a este usuario", follower });
+    } else{
+      res.send({ message: "Ya seguías a este usuario"});
+    }
+  }
+
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: `Ha habido un problema al seguir a este usuario ` });
+    }
+  },
+  async unfollow(req, res) {
+    try {
+      const follower = await User.findOneAndUpdate(
+        {
+          _id: req.params._id,
+          followers: { _id: req.user._id }
+        },
+        { $pull: { followers: req.user._id } },
+        { new: true }
+      );
+
+      if (follower){
+      await User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { following: req.params._id } },
+        { new: true }
+      );
+      res.send({ message: "Has dejado de seguir a este usuario", follower });
+    } else{
+      res.send({ message: "Ya habías dejado de seguir a este usuario", post });
+    }
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: `Ha habido un problema al dejar de seguir a este usuario` });
+    }
   },
 };
 module.exports = UserController;

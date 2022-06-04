@@ -19,6 +19,8 @@ const UserSchema = new mongoose.Schema({
     role: String,
     confirmed: Boolean,
     tokens:[],
+    followers: [{ type: ObjectId, ref: 'User' }],
+    following:[{type: ObjectId, ref:'User'}],
     likedPosts: [{ type: ObjectId, ref: 'Post' }],
     postIds:[{ type: ObjectId, ref: 'Post'}],
     commentIds:[{ type: ObjectId, ref: 'Comment'}],

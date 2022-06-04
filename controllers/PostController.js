@@ -167,8 +167,11 @@ const PostController = {
   },
   async unlike(req, res) {
     try {
-      const post = await Product.findByIdAndUpdate(
-        req.params._id,
+      const post = await Post.findOneAndUpdate(
+        {
+          _id: req.params._id,
+          likes: { _id: req.user._id }
+        },
         { $pull: { likes: req.user._id } },
         { new: true }
       );

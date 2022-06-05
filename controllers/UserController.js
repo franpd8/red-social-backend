@@ -2,6 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const transporter = require("../config/nodemailer");
 const jwt = require("jsonwebtoken");
+const Post = require("../models/Post");
 require("dotenv").config();
 const jwt_secret = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 3001;
@@ -211,7 +212,14 @@ const UserController = {
   async delete(req, res) {
     try {
       const user = await User.findByIdAndDelete(req.params._id);
+      await Post.deleteMany({userId:req.params._id});
+      await Comment.deleteMany({userId:req.params._id});
+
       res.send({ user, message: "Usuario eliminado" });
+
+      // const posts = await Post.findById({userId:req.params._id});
+      // console.log(posts)
+
     } catch (error) {
       console.error(error);
       res
@@ -297,6 +305,20 @@ const UserController = {
         .send({
           message: `Ha habido un problema al dejar de seguir a este usuario`,
         });
+    }
+  },
+  async findUserPost(req, res) {
+    try {
+      
+      console.log(posts)
+      userId: {$in: req.params._id}
+
+      res.send(posts)
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .send({ message: "Ha habido un problema al eliminar el usuario" });
     }
   },
 };

@@ -94,6 +94,12 @@ const PostController = {
   async delete(req, res) {
     try {
       const post = await Post.findByIdAndDelete(req.params._id);
+
+      await User.deleteOne({postIds:req.params._id});
+      await Comment.deleteMany({postId:req.params._id});
+      await Comment.findByIdAndUpdate(req.params._id, {
+        $pull: { comments: comment._id },
+      });
       res.send({ post, message: "Post eliminado" });
       await User.findByIdAndUpdate(
         req.user_id,

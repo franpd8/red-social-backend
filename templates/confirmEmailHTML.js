@@ -1,6 +1,6 @@
 const confirmEmailHTML = (username, email, token, domain) => {
-const lang = 'es';
-const logo = 'https://tusitioweb/public/logo.png'
+// const lang = 'es';
+// const logo = 'https://tusitioweb/public/logo.png'
 
 const MSG001 = 'NombreApp: Verificar cuenta nueva';
 const MSG002 = 'LogoApp';
@@ -19,14 +19,8 @@ const MSG014 = 'NombreApp';
 const MSG015 = 'https://pilgrimtests.000webhostapp.com/phoibeapp/img/web.png';
 const MSG016 = 'email@de_la_app.com';
 const MSG017 = 'https://pilgrimtests.000webhostapp.com/phoibeapp/img/email.png';
-const MSG018 = 'https://discord.gg/de_la_app';
-const MSG019 = 'https://pilgrimtests.000webhostapp.com/phoibeapp/img/discord.png';
-const MSG020 = 'https://www.facebook.com/de_la_app';
-const MSG021 = 'https://pilgrimtests.000webhostapp.com/phoibeapp/img/fb.png';
-const MSG022 = 'https://www.twitter.com/de_la_app';
-const MSG023 = 'https://pilgrimtests.000webhostapp.com/phoibeapp/img/tw.png';
-const MSG024 = 'https://www.youtube.com/channel/de_la_app';
-const MSG025 = 'https://pilgrimtests.000webhostapp.com/phoibeapp/img/yt.png';
+
+
 
 const emailContent  = `
 <!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8">

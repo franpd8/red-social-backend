@@ -5,14 +5,18 @@ const Comment = require("../models/Comment");
 const PostController = {
   async create(req, res, next) {
     try {
+      // compruebo si quiero añadir imagen o no 
+       if(req.file) req.body.img = (req.file.destination + req.file.filename)
       const post = await Post.create({
         ...req.body,
-        userId: req.user._id,
+        userId: req.user._id
       });
       await User.findByIdAndUpdate(req.user._id, {
         $push: { postIds: post._id },
       });
       res.status(201).send({ message: "Post añadido con éxito", post });
+    
+      
     } catch (error) {
       // catch (err) {
       //   // console.log(err)
@@ -32,7 +36,7 @@ const PostController = {
   async getAll(req, res) {
     try {
       const { page = 1, limit = 10 } = req.query;
-      const posts = await Post.find({}, { title: 1, body: 1, comments: 1 })
+      const posts = await Post.find({}, { img:1,title: 1, body: 1, comments: 1})
         .populate({ path: "userId", select: { name: 1, email: 1 } })
         .populate({
           path: "comments",
@@ -110,8 +114,10 @@ const PostController = {
     }
   },
   async update(req, res) {
+
+    console.log(req.file)
     try {
-      const post = await Post.findByIdAndUpdate(req.params._id, req.body, {
+      const post = await Post.findByIdAndUpdate(req.params._id, {...req.body,img:req.file.filename}, {
         new: true,
       });
       await User.findByIdAndUpdate(

@@ -14,6 +14,7 @@ const PostSchema = new mongoose.Schema(
       type: ObjectId,
       ref: "User",
     },
+    img:{type:String},
     likes: [{ type: ObjectId }],
     comments:[{ type: ObjectId, ref: 'Comment'}],
     

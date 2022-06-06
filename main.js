@@ -1,4 +1,6 @@
 const express = require("express");
+const multer  = require('multer')
+const upload = multer()
 const app = express();
 // const PORT = 8080;
 require("dotenv").config();
@@ -9,6 +11,7 @@ const { typeError } = require('./middlewares/errors');
 
 
 app.use(express.json())
+app.use(express.static("public"))
 
 
 dbConnection()

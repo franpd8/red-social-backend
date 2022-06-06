@@ -23,6 +23,8 @@ const typeError = (err, req, res, next) => {
     res.status(500).send("Hubo un problema con el controlador de Post");
   } else if (errOrigin === "Usuario"){
     res.status(500).send("Hubo un problema con el controlador de Usuario");
+  }else if (errOrigin === "Comment"){
+    res.status(500).send("Hubo un problema con el controlador de Comentario");
   }
 };
 module.exports = { typeError };

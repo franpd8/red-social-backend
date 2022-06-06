@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.SchemaTypes.ObjectId;
 
-
 const UserSchema = new mongoose.Schema({
     name: {
         type:String,
@@ -25,7 +24,6 @@ const UserSchema = new mongoose.Schema({
     likedComments: [{ type: ObjectId, ref: 'Comment' }],
     postIds:[{ type: ObjectId, ref: 'Post'}],
     commentIds:[{ type: ObjectId, ref: 'Comment'}],
-    
     
 }, { timestamps: true });
 

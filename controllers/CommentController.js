@@ -43,25 +43,18 @@ const CommentController = {
   async getAllByPost(req, res) {
     try {
       const comments = await Post.findById(
-        //   busca por parametro y muestra solo title y body
         req.params._id,
         { title: 1, body: 1 }
       )
-        //   añade info del dueño del post
         .populate({
           path: "userId",
-          // pero muestra solo nombre
           select: { name: 1 },
         })
-        // añade info de los comentarios del post
         .populate({
           path: "comments",
-          //   pero solo valor
           select: { body: 1 },
-          //   añade info del dueño del comentario
           populate: {
             path: "userId",
-            //   pero solo nombre
             select: { name: 1 },
           },
         });
@@ -77,7 +70,6 @@ const CommentController = {
   async getAllByUser(req, res) {
     try {
       const comments = await User.findById(req.params._id)
-        //   añade comentarios del usuario
         .populate({
           path: "commentIds",
           select: { body: 1, postId: 1 },

@@ -21,9 +21,9 @@
 
 Para descargarte el repositorio, en Visual Studio, abre una terminal y ejecuta el comando siguiente:
 
-````
+```
 git clone https://github.com/franpd8/red-social-backend
-````
+```
  
 Seguidamente tendrás que descargar los módulos externos con node (Express,Mongoose,Bcrypt, Nodemailer,Jsonwebtoken,Multer,Dotenv). Para ello, realiza el siguiente comando.
 
@@ -35,6 +35,11 @@ Finalmente levanta el servidor con el siguiente comando para arrancar node.
 ````
 npm start
 ````
+Por otro lado, puedes probar el proyecto desplegado en Heroku a través del siguiente enlace:
+
+```
+enlace de heroku
+```
 
 ### 💻 Tecnologías usadas
 
@@ -65,6 +70,24 @@ Crear una API REST que sea capaz de lo siguiente:
 
 
 Puedes revisar los endpoints disponibles para Postman en [este enlace ↗ ](https://documenter.getpostman.com/view/21015186/Uz5JGv5p)
+
+### ⚔️ Funciones
+
+En esta red social, tenemos tres elementos principales: <u>usuarios, publicaciones(<i>post</i>), y comentarios(<i>comment</i>)</u>. Sobre los cuales podremos realizar un CRUD.
+
+Un usuario podrá <u>crear publicaciones</u> y podrá <u>comentar en ellas</u>. A su vez, también podrá dar like a dichas publicaciones e incluso a los comentarios de otros usuarios en las mismas. Estas acciones <u>se pueden revertir</u>,es decir, un usuario puede retirar sus likes de publicaciones y de comentarios.
+
+Los usuarios se pueden seguir entre sí, existiendo por tanto la lista de seguidores y la lista de seguidos. 
+
+Las publicaciones pueden o no, incluir una imagen si así lo desea el usuario. 
+
+### ⚔️ Validaciones
+
+A la hora de crear elementos: usuario, publicación o comentario; implementamos validaciones para <u>no permitir ningún campo vacío</u>. Por tanto, al crear el usuario no podrá dejar vacío los campos de nombre, email o contraseña. Para las publicaciones, será obligatorio tener un título mientras que la descripción será opcional. Los comentarios no pueden estar vacíos. 
+
+Un usuario solo podrá editar las publicaciones y comentarios que <u>él mismo haya creado,</u> no pudiendo interferir en el contenido creado por los demás, salvo que su rango sea de administrador. El admin tiene total poder para modificar las publicaciones y comentarios de los demás usuarios.
+
+Implementamos además dos requisitos para la <u>lista de seguidores y seguidos</u>: un usuario no puede seguirse a sí mismo, y sólo puede seguir a personas que no seguía con anterioridad. 
 
 
 ## 🔜 Futuras Implementaciones

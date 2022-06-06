@@ -35,9 +35,16 @@ const isAdmin = async (req, res, next) => {
 };
 const isAuthorPost = async (req, res, next) => {
   try {
+    
+    const admins = ["admin", "superadmin"]
+    
     const post = await Post.findById(req.params._id);
+
+    console.log(req.user._id,req.user.role)
     if (post.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).send({ message: "Este post no es tuyo" });
+      if(!admins.includes(req.user.role)){
+        return res.status(403).send({ message: "Este post no es tuyo" });
+      } 
     }
     next();
   } catch (error) {
@@ -53,8 +60,10 @@ const isAuthorPost = async (req, res, next) => {
 const isAuthorComment = async (req, res, next) => {
     try {
       const comment = await Comment.findById(req.params._id);
-      if (comment.userId.toString() !== req.user._id.toString()) {
+      if(comment.userId.toString() !== req.user._id.toString()) {
+        if(!admins.includes(req.user.role)){
         return res.status(403).send({ message: "Este comentario no es tuyo" });
+        }
       }
       next();
     } catch (error) {

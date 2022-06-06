@@ -106,14 +106,12 @@ const CommentController = {
   async delete(req, res) {
     try {
       const comment = await Comment.findByIdAndDelete(req.params._id);
-      await User.findByIdAndUpdate(req.user._id, {
-        $pull: { commentIds: comment._id },
-      });
-      await Post.findByIdAndUpdate(req.params._id, {
-        $pull: { comments: comment._id },
-      });
-      
-      
+      // await User.findByIdAndUpdate(req.user._id, {
+      //   $pull: { commentIds: comment._id },
+      // });
+      // await Post.findByIdAndUpdate(req.params._id, {
+      //   $pull: { comments: comment._id },
+      // });
       res
         .status(201)
         .send({ message: "Comentario eliminiado con éxito", comment });

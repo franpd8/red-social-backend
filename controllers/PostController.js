@@ -1,5 +1,6 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
+const Comment = require("../models/Comment");
 
 const PostController = {
   async create(req, res, next) {
@@ -94,18 +95,13 @@ const PostController = {
   async delete(req, res) {
     try {
       const post = await Post.findByIdAndDelete(req.params._id);
-      // alternativa es utilizar findByIdAndDelete con el parametro unicamente
-      await User.deleteOne({postIds:req.params._id});
-      // otra forma de hacerlo
-      //  await Comment.deleteMany({postId:req.params._id});
-      await Comment.findByIdAndUpdate(req.params._id, {
-        $pull: { comments: comment._id },
-      });
+     
+      // await User.findByIdAndUpdate(req.params._id,
+      //   {$pull: { postIds: req.params._id },});
+      // await Comment.deleteMany({postId:req.params._id});
+  
       res.send({ post, message: "Post eliminado con todo lo demás" });
-      await User.findByIdAndUpdate(
-        req.user_id,
-        { $pull: { postIds: req.params._id } }
-    );
+  
     } catch (error) {
       console.error(error);
       res

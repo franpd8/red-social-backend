@@ -1,8 +1,10 @@
 const User = require("../models/User");
+const Post = require("../models/Post");
+const Comment = require("../models/Comment");
 const bcrypt = require("bcryptjs");
 const transporter = require("../config/nodemailer");
 const jwt = require("jsonwebtoken");
-const Post = require("../models/Post");
+
 require("dotenv").config();
 const jwt_secret = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 3001;
@@ -215,7 +217,7 @@ const UserController = {
       await Post.deleteMany({userId:req.params._id});
       await Comment.deleteMany({userId:req.params._id});
 
-      res.send({ user, message: "Usuario eliminado" });
+      res.send({ user, message: "Usuario eliminado: bye bye "+user.name });
 
       // const posts = await Post.findById({userId:req.params._id});
       // console.log(posts)

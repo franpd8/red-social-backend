@@ -4,10 +4,10 @@ const Comment = require("../models/Comment");
 const bcrypt = require("bcryptjs");
 const transporter = require("../config/nodemailer");
 const jwt = require("jsonwebtoken");
-
 require("dotenv").config();
 const jwt_secret = process.env.JWT_SECRET;
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
+
 // const confirmEmailHTML = require("../templates/confirmEmailHTML");
 // const fs = require("fs");
 const UserController = {
@@ -161,7 +161,23 @@ const UserController = {
             path: "userId",
             select: { name: 1 },
           },
-        });
+        })
+
+      .populate({
+        path:"commentIds",
+        select:{
+          body:1,postId:1
+        },
+        populate:{
+          path: "postId",
+          select:{title:1,userId:1},
+          populate:{
+            path:"userId",
+            select:{name:1}
+          }
+
+        }
+      })
       //  otra forma es .findById(req.user._id)
       res.send(user);
     } catch (error) {

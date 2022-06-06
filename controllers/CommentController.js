@@ -29,8 +29,8 @@ const CommentController = {
   async getAll(req, res) {
     try {
       const comments = await Comment.find();
-      if(comments.length === 0){
-        res.send({message:"Todavía no hay comentarios"})
+      if (comments.length === 0) {
+        res.send({ message: "Todavía no hay comentarios" });
       }
       res.send(comments);
     } catch (error) {
@@ -44,7 +44,7 @@ const CommentController = {
     try {
       const comments = await Post.findById(
         //   busca por parametro y muestra solo title y body
-         req.params._id ,
+        req.params._id,
         { title: 1, body: 1 }
       )
         //   añade info del dueño del post
@@ -80,15 +80,11 @@ const CommentController = {
         //   añade comentarios del usuario
         .populate({
           path: "commentIds",
-          //  muestra solo el valor del comentario y el postId asociado
           select: { body: 1, postId: 1 },
           populate: {
-            // añade info del post
             path: "postId",
-            // muestra solo titulo y dueño
             select: { title: 1, userId: 1 },
             populate: {
-              // añade nombre del dueño del post
               path: "userId",
               select: { name: 1 },
             },
@@ -153,21 +149,21 @@ const CommentController = {
       const comment = await Comment.findOneAndUpdate(
         {
           _id: req.params._id,
-          likes: { $nin: req.user._id }
+          likes: { $nin: req.user._id },
         },
         { $push: { likes: req.user._id } },
         { new: true }
       );
-      if (comment){
-      await User.findByIdAndUpdate(
-        req.user._id,
-        { $push: { likedComments: req.params._id } },
-        { new: true }
-      );
-      res.send({ message: "Like añadido al comentario con éxito", comment });
-    } else{
-      res.send({ message: "Ya le habías dado like antes"});
-    }
+      if (comment) {
+        await User.findByIdAndUpdate(
+          req.user._id,
+          { $push: { likedComments: req.params._id } },
+          { new: true }
+        );
+        res.send({ message: "Like añadido al comentario con éxito", comment });
+      } else {
+        res.send({ message: "Ya le habías dado like antes" });
+      }
     } catch (error) {
       console.error(error);
       res
@@ -180,22 +176,25 @@ const CommentController = {
       const comment = await Comment.findOneAndUpdate(
         {
           _id: req.params._id,
-          likes: { _id: req.user._id }
+          likes: { _id: req.user._id },
         },
         { $pull: { likes: req.user._id } },
         { new: true }
       );
 
-      if (comment){
-      await User.findByIdAndUpdate(
-        req.user._id,
-        { $pull: { likedComments: req.params._id } },
-        { new: true }
-      );
-      res.send({ message: "Like retirado del comentario con éxito", comment });
-    } else{
-      res.send({ message: "Ya habías quitado el like antes" });
-    }
+      if (comment) {
+        await User.findByIdAndUpdate(
+          req.user._id,
+          { $pull: { likedComments: req.params._id } },
+          { new: true }
+        );
+        res.send({
+          message: "Like retirado del comentario con éxito",
+          comment,
+        });
+      } else {
+        res.send({ message: "Ya habías quitado el like antes" });
+      }
     } catch (error) {
       console.error(error);
       res

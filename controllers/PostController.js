@@ -1,6 +1,7 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
-const Comment = require("../models/Comment");
+// const Comment = require("../models/Comment");
+
 
 const PostController = {
   async create(req, res, next) {
@@ -82,9 +83,10 @@ const PostController = {
       });
     }
   },
-  async getMine(req, res) {
+  async myPosts(req, res) {
     try {
-      const posts = await User.findById(req.user._id).populate({
+      const posts = await User.findById(req.user._id)
+      .populate({
         path: "postIds",
         select: { title: 1 },
       });
@@ -117,7 +119,9 @@ const PostController = {
 
     console.log(req.file)
     try {
-      const post = await Post.findByIdAndUpdate(req.params._id, {...req.body,img:req.file.filename}, {
+
+      if(req.file) req.body.img = (req.file.destination + req.file.filename)
+      const post = await Post.findByIdAndUpdate(req.params._id, {...req.body,}, {
         new: true,
       });
       await User.findByIdAndUpdate(

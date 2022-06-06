@@ -30,6 +30,23 @@ Seguidamente tendrás que descargar los módulos externos con node (Express,Mong
 ```
 npm i
 ```
+
+Después, configuramos nuestro archivo de variables de entorno .env.example para que quede como .env.js con los valores de nuestra base de datos en Mongo Atlas y las credenciales de nuestra dirección de email desde la cual vamos a enviar correos de confirmación para validar al usuario registrado. 
+
+Dado que vamos a controlar la identidad de cada usuario mientras esté conectado en nuestra red social, utilizaremos jsonwebtoken para generar el token del usuario. 
+```
+PORT =  // Aquí iría la direccion del puerto a levantar
+
+MONGO_URI = "" // Introducimos direccion de base de datos MongoDB
+
+JWT_SECRET = "" // Introducimos secreto
+
+USER_NODEMAILER = "" // Dirección de email
+PASS_NODEMAILER  = "" // Contraseña email
+
+
+```
+
 Finalmente levanta el servidor con el siguiente comando para arrancar node.
 
 ````
@@ -69,8 +86,6 @@ Crear una API REST que sea capaz de lo siguiente:
 * Backend disponible en producción (Heroku).
 
 
-Puedes revisar los endpoints disponibles para Postman en [este enlace ↗ ](https://documenter.getpostman.com/view/21015186/Uz5JGv5p)
-
 ### ⚔️ Funciones
 
 En esta red social, tenemos tres elementos principales: <u>usuarios, publicaciones(<i>post</i>), y comentarios(<i>comment</i>)</u>. Sobre los cuales podremos realizar un CRUD.
@@ -88,6 +103,11 @@ A la hora de crear elementos: usuario, publicación o comentario; implementamos 
 Un usuario solo podrá editar las publicaciones y comentarios que <u>él mismo haya creado,</u> no pudiendo interferir en el contenido creado por los demás, salvo que su rango sea de administrador. El admin tiene total poder para modificar las publicaciones y comentarios de los demás usuarios.
 
 Implementamos además dos requisitos para la <u>lista de seguidores y seguidos</u>: un usuario no puede seguirse a sí mismo, y sólo puede seguir a personas que no seguía con anterioridad. 
+
+
+### CRUD: Usuarios, Publicaciones y Comentarios. 
+
+Puedes revisar los endpoints disponibles para Postman en [este enlace ↗ ](https://documenter.getpostman.com/view/21015186/Uz5JGv5p)
 
 
 ## 🔜 Futuras Implementaciones

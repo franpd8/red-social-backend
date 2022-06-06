@@ -326,19 +326,5 @@ const UserController = {
         });
     }
   },
-  async findUserPost(req, res) {
-    try {
-      
-      console.log(posts)
-      userId: {$in: req.params._id}
-
-      res.send(posts)
-    } catch (error) {
-      console.error(error);
-      res
-        .status(500)
-        .send({ message: "Ha habido un problema al eliminar el usuario" });
-    }
-  },
 };
 module.exports = UserController;

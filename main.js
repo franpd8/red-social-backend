@@ -6,7 +6,8 @@ require("dotenv").config();
 const PORT = process.env.PORT || 3001;
 const { dbConnection } = require("./config/config")
 const { typeError } = require('./middlewares/errors');
-
+const cors = require ('cors') 
+app.use(cors())
 app.use(express.json())
 app.use(express.static("public"))
 

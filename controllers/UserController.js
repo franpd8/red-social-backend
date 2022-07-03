@@ -78,14 +78,14 @@ const UserController = {
       // 1 - Buscar usuario
       const user = await User.findOne({ email: req.body.email });
       if (!user) {
-        res.status(400).send({
+        return res.status(400).send({
           message: "Usuario no encontrado: Usuario o contraseña incorrectos",
         });
       }
       // 2 - confirmar contraseña
       const isMatch = await bcrypt.compare(req.body.password, user.password);
       if (!isMatch) {
-        res.status(400).send({
+        returnres.status(400).send({
           message: "Error de datos: Usuario o contraseña incorrectos",
         });
       }
@@ -105,14 +105,14 @@ const UserController = {
       // guarda en la bd
       await user.save();
       // 5 - bienvenida
-      res.send({
+      return res.send({
         token,
         message: "¡Cuánto tiempo sin verte " + user.name,
         user,
       });
     } catch (err) {
       console.log(err);
-      res.status(500).send({ message: `Ha habido un problema al conectarse` });
+      return res.status(500).send({ message: `Ha habido un problema al conectarse` });
     }
   },
   async logout(req, res) {
@@ -120,10 +120,10 @@ const UserController = {
       const user = await User.findByIdAndUpdate(req.user._id, {
         $pull: { tokens: req.headers.authorization },
       });
-      res.send({ message: "Desconectado con éxito " + user.name });
+      return res.send({ message: "Desconectado con éxito " + user.name });
     } catch (error) {
       console.error(error);
-      res.status(500).send({
+      return res.status(500).send({
         message: "Hubo un problema al intentar desconectar al usuario",
       });
     }
@@ -180,10 +180,10 @@ const UserController = {
         }
       })
       //  otra forma es .findById(req.user._id)
-      res.send(user);
+      return res.send(user);
     } catch (error) {
       console.error(error);
-      res.status(500).send({
+      return res.status(500).send({
         message: "Ha habido un problema al cargar la información del usuarios",
       });
     }
@@ -194,10 +194,10 @@ const UserController = {
       if(users.length === 0){
         res.send({message:"Todavía no hay usuarios"})
       }
-      res.send(users);
+      return res.send(users);
     } catch (error) {
       console.error(error);
-      res
+      return res
         .status(500)
         .send({ message: "Ha habido un problema al cargar los usuarios" });
     }
@@ -205,10 +205,10 @@ const UserController = {
   async getById(req, res) {
     try {
       const user = await User.findById(req.params._id);
-      res.send(user);
+      return res.send(user);
     } catch (error) {
       console.error(error);
-      res.status(500).send({
+      return res.status(500).send({
         message: `Ha habido un problema al buscar el usuario con id = ${req.params._id}`,
       });
     }
@@ -220,10 +220,10 @@ const UserController = {
       }
       const name = new RegExp(req.params.name, "i");
       const user = await User.find({ name: name });
-      res.send(user);
+      return res.send(user);
     } catch (error) {
       console.log(error);
-      res
+      return res
         .status(500)
         .send({ message: `Ha habido un problema al buscar el usuario` });
     }
@@ -234,14 +234,14 @@ const UserController = {
       await Post.deleteMany({userId:req.params._id});
       await Comment.deleteMany({userId:req.params._id});
 
-      res.send({ user, message: "Usuario eliminado: bye bye "+user.name });
+      return res.send({ user, message: "Usuario eliminado: bye bye "+user.name });
 
       // const posts = await Post.findById({userId:req.params._id});
       // console.log(posts)
 
     } catch (error) {
       console.error(error);
-      res
+      return res
         .status(500)
         .send({ message: "Ha habido un problema al eliminar el usuario" });
     }
@@ -251,10 +251,10 @@ const UserController = {
       const user = await User.findByIdAndUpdate(req.params._id, req.body, {
         new: true,
       });
-      res.send({ message: "usuario actualizado con éxito", user });
+      return res.send({ message: "usuario actualizado con éxito", user });
     } catch (error) {
       console.error(error);
-      res
+      return res
         .status(500)
         .send({ message: "Ha habido un problema al actualizar el usuario" });
     }
@@ -262,7 +262,7 @@ const UserController = {
   async follow(req, res) {
     try {
       if (req.params._id == req.user._id) {
-        res.send({ message: "No puedes seguirte a ti mismo" });
+        return res.send({ message: "No puedes seguirte a ti mismo" });
       } else {
         const follower = await User.findOneAndUpdate(
           {
@@ -279,17 +279,17 @@ const UserController = {
             { $push: { following: req.params._id } },
             { new: true }
           );
-          res.send({
+          return res.send({
             message: "Ahora estás siguiendo a este usuario",
             follower,
           });
         } else {
-          res.send({ message: "Ya seguías a este usuario" });
+          return res.send({ message: "Ya seguías a este usuario" });
         }
       }
     } catch (error) {
       console.error(error);
-      res
+      return res
         .status(500)
         .send({ message: `Ha habido un problema al seguir a este usuario ` });
     }

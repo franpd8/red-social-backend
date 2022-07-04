@@ -6,10 +6,10 @@ const router = express.Router();
 router.post("/add", UserController.register);
 router.post('/confirm/:emailToken', UserController.confirm)
 router.get("/all", UserController.getAll);
-router.get("/info", authentication,UserController.getUser)
-router.get("/id/:_id", authentication, isAdmin, UserController.getById);
+router.get("/info",authentication,UserController.getUser)
+router.get("/id/:_id", authentication, UserController.getById);
 router.get('/name/:name', UserController.getByName)
-router.delete("/delete/:_id",authentication, isAdmin, UserController.delete);
+router.delete("/delete/:_id",authentication,  UserController.delete);
 router.put("/update/:_id", authentication, UserController.update);
 router.post("/login", UserController.login);
 router.put("/logout", authentication,UserController.logout);

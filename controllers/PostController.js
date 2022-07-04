@@ -36,15 +36,16 @@ const PostController = {
   async getAll(req, res) {
     try {
       const { page = 1, limit = 10 } = req.query;
-      const posts = await Post.find({}, { img:1,title: 1, body: 1, comments: 1})
-        .populate({ path: "userId", select: { name: 1, email: 1 } })
+      const posts = await Post.find({},)
+        .populate({ path: "userId"})
         .populate({
           path: "comments",
           select: { body: 1 },
           populate: { path: "userId", select: { name: 1 } },
         })
-        .limit(limit * 1)
-        .skip((page - 1) * limit);
+
+        // .limit(limit * 1)
+        // .skip((page - 1) * limit);
         
         if(posts.length === 0){
           res.send({message:"Todavía no hay posts"})
@@ -59,7 +60,12 @@ const PostController = {
   },
   async getById(req, res) {
     try {
-      const post = await Post.findById(req.params._id);
+      const post = await Post.findById(req.params._id).populate({ path: "userId", select: { name: 1, email: 1 } })
+      .populate({
+        path: "comments",
+        select: { body: 1 },
+        populate: { path: "userId", select: { name: 1 } },
+      });;
       res.send(post);
     } catch (error) {
       console.error(error);
@@ -138,22 +144,23 @@ const PostController = {
   },
   async getByName(req, res) {
     try {
-      if (req.params.search.length > 20) {
-        return res.status(400).send("Busqueda demasiado larga");
-      }
-      const search = new RegExp(req.params.search, "i");
-      const post = await Post.find({ body: search });
-      console.log(post);
-      if (post.length === 0) {
-        res.status(200).send({
+      const title = new RegExp(req.params.title, "i");
+      const post = await Post.find({title}).populate({ path: "userId", select: { name: 1, email: 1 } })
+      .populate({
+        path: "comments",
+        select: { body: 1 },
+        populate: { path: "userId", select: { name: 1 } },
+      });
+     
+      if (post.length == 0) {
+          return res.status(200).send({
           message: "No hemos encontrado ningún resultado",
-        });
-      } else {
-        res.send(post);
-      }
+        }) }   
+        
+      return res.status(200).send(post)
     } catch (error) {
       console.log(error);
-      res
+      return res
         .status(500)
         .send({ message: `Ha habido un problema al buscar el post ` });
     }

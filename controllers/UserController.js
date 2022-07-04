@@ -28,7 +28,7 @@ const UserController = {
         expiresIn: "48h",
       });
       const url = `http://localhost:${PORT}/users/confirm/${emailToken}`;
-      
+
       //   const confirmEmailContent = confirmEmailHTML(
       //     req.body.username,
       //     req.body.email,
@@ -42,9 +42,10 @@ const UserController = {
       //     `,
       // });
       // fs.writeFileSync('public/fakeEmail.html', confirmEmailContent);
-      
+
       res.status(201).send({
-        message: "Te hemos enviado un correo para confirmar el registro",
+        // message: "Te hemos enviado un correo para confirmar el registro",
+        message: "Gracias por registrarte",
         user,
       });
     } catch (error) {
@@ -76,7 +77,40 @@ const UserController = {
   async login(req, res) {
     try {
       // 1 - Buscar usuario
-      const user = await User.findOne({ email: req.body.email });
+      const user = await User.findOne({ email: req.body.email })
+        .populate({
+          path: "postIds",
+          populate: {
+            path: "comments", 
+            populate: {
+              path: "userId",
+             
+            },
+          },
+        })
+        .populate({
+          path: "followers"
+        })
+        .populate({
+          path: "following"
+        })
+        .populate({
+          path: "likedPosts",
+          populate: {
+            path: "userId",
+          },
+        })
+        .populate({
+          path: "commentIds",
+          populate: {
+            path: "postId",
+            select: { title: 1, userId: 1 },
+            populate: {
+              path: "userId",
+              select: { name: 1 },
+            },
+          },
+        });
       if (!user) {
         return res.status(400).send({
           message: "Usuario no encontrado: Usuario o contraseña incorrectos",
@@ -112,7 +146,9 @@ const UserController = {
       });
     } catch (err) {
       console.log(err);
-      return res.status(500).send({ message: `Ha habido un problema al conectarse` });
+      return res
+        .status(500)
+        .send({ message: `Ha habido un problema al conectarse` });
     }
   },
   async logout(req, res) {
@@ -135,50 +171,37 @@ const UserController = {
         // trae informacion de post propios
       )
         .populate({
-          path: "postIds",
-          select: { title: 1, body: 1 },
+          path: "postIds"
+        })
+        .populate({
+          path: "followers",
+        })
+        .populate({
+          path: "following"
+        })
+        // trae informacion del post que le gusta
+        .populate({
+          path: "likedPosts",
           populate: {
-            path: "comments",
-            select: { body: 1 },
+            path: "userId",
+          },
+        })
+
+        .populate({
+          path: "commentIds",
+          select: {
+            body: 1,
+            postId: 1,
+          },
+          populate: {
+            path: "postId",
+            select: { title: 1, userId: 1 },
             populate: {
               path: "userId",
               select: { name: 1 },
             },
           },
-        })
-        .populate({
-            path: "followers",
-            select:{name:1}
-        })
-        .populate({
-          path: "following",
-          select:{name:1}
-      })
-        // trae informacion del post que le gusta
-        .populate({
-          path: "likedPosts",
-          select: { title: 1, body: 1, userId: 1 },
-          populate: {
-            path: "userId",
-            select: { name: 1 },
-          },
-        })
-
-      .populate({
-        path:"commentIds",
-        select:{
-          body:1,postId:1
-        },
-        populate:{
-          path: "postId",
-          select:{title:1,userId:1},
-          populate:{
-            path:"userId",
-            select:{name:1}
-          }
-
-        }
-      })
+        });
       //  otra forma es .findById(req.user._id)
       return res.send(user);
     } catch (error) {
@@ -191,8 +214,8 @@ const UserController = {
   async getAll(req, res) {
     try {
       const users = await User.find();
-      if(users.length === 0){
-        res.send({message:"Todavía no hay usuarios"})
+      if (users.length === 0) {
+        res.send({ message: "Todavía no hay usuarios" });
       }
       return res.send(users);
     } catch (error) {
@@ -231,14 +254,16 @@ const UserController = {
   async delete(req, res) {
     try {
       const user = await User.findByIdAndDelete(req.params._id);
-      await Post.deleteMany({userId:req.params._id});
-      await Comment.deleteMany({userId:req.params._id});
+      await Post.deleteMany({ userId: req.params._id });
+      await Comment.deleteMany({ userId: req.params._id });
 
-      return res.send({ user, message: "Usuario eliminado: bye bye "+user.name });
+      return res.send({
+        user,
+        message: "Usuario eliminado: bye bye " + user.name,
+      });
 
       // const posts = await Post.findById({userId:req.params._id});
       // console.log(posts)
-
     } catch (error) {
       console.error(error);
       return res
@@ -319,11 +344,9 @@ const UserController = {
       }
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .send({
-          message: `Ha habido un problema al dejar de seguir a este usuario`,
-        });
+      res.status(500).send({
+        message: `Ha habido un problema al dejar de seguir a este usuario`,
+      });
     }
   },
 };

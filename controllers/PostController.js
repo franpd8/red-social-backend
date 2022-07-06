@@ -5,18 +5,18 @@ const User = require("../models/User");
 const PostController = {
   async create(req, res, next) {
     try {
-      // compruebo si quiero añadir imagen o no 
-       if(req.file) req.body.img = (req.file.destination + req.file.filename)
-      const post = await Post.create({
+      // compruebo si quiero añadir imagen o no
+      if (req.file) req.body.img = req.file.destination + req.file.filename;
+      let post = await Post.create({
         ...req.body,
-        userId: req.user._id
+        userId: req.user._id,
       });
+
+      post = await post.populate({ path: "userId" })
       await User.findByIdAndUpdate(req.user._id, {
         $push: { postIds: post._id },
       });
-      res.status(201).send({ message: "Post añadido con éxito", post});
-    
-      
+      res.status(201).send({ message: "Post añadido con éxito", post });
     } catch (error) {
       // catch (err) {
       //   // console.log(err)
@@ -36,20 +36,20 @@ const PostController = {
   async getAll(req, res) {
     try {
       const { page = 1, limit = 10 } = req.query;
-      const posts = await Post.find({},)
-        .populate({ path: "userId"})
+      const posts = await Post.find({})
+        .populate({ path: "userId" })
         .populate({
           path: "comments",
           select: { body: 1 },
           populate: { path: "userId", select: { name: 1 } },
-        })
+        });
 
-        // .limit(limit * 1)
-        // .skip((page - 1) * limit);
-        
-        if(posts.length === 0){
-          res.send({message:"Todavía no hay posts"})
-        }
+      // .limit(limit * 1)
+      // .skip((page - 1) * limit);
+
+      if (posts.length === 0) {
+        res.send({ message: "Todavía no hay posts" });
+      }
       res.send(posts);
     } catch (error) {
       console.error(error);
@@ -60,12 +60,10 @@ const PostController = {
   },
   async getById(req, res) {
     try {
-      const post = await Post.findById(req.params._id).populate({ path: "userId", select: { name: 1, email: 1 } })
-      .populate({
-        path: "comments",
-        select: { body: 1 },
-        populate: { path: "userId", select: { name: 1 } },
-      });;
+      const post = await Post.findById(req.params._id)
+        .populate({ path: "userId", select: "name " })
+        .populate({ path: "likes",select:{name:1,avatar:1} });
+
       res.send(post);
     } catch (error) {
       console.error(error);
@@ -90,8 +88,7 @@ const PostController = {
   },
   async myPosts(req, res) {
     try {
-      const posts = await User.findById(req.user._id)
-      .populate({
+      const posts = await User.findById(req.user._id).populate({
         path: "postIds",
         select: { title: 1 },
       });
@@ -106,13 +103,12 @@ const PostController = {
   async delete(req, res) {
     try {
       const post = await Post.findByIdAndDelete(req.params._id);
-     
+
       // await User.findByIdAndUpdate(req.params._id,
       //   {$pull: { postIds: req.params._id },});
       // await Comment.deleteMany({postId:req.params._id});
-  
+
       res.send({ post, message: "Post eliminado con todo lo demás" });
-  
     } catch (error) {
       console.error(error);
       res
@@ -121,14 +117,16 @@ const PostController = {
     }
   },
   async update(req, res) {
-
-    console.log(req.file)
+    console.log(req.file);
     try {
-
-      if(req.file) req.body.img = (req.file.destination + req.file.filename)
-      const post = await Post.findByIdAndUpdate(req.params._id, {...req.body,}, {
-        new: true,
-      });
+      if (req.file) req.body.img = req.file.destination + req.file.filename;
+      const post = await Post.findByIdAndUpdate(
+        req.params._id,
+        { ...req.body },
+        {
+          new: true,
+        }
+      );
       await User.findByIdAndUpdate(
         req.user._id,
         { $push: { likedPosts: req.params._id } },
@@ -145,19 +143,21 @@ const PostController = {
   async getByName(req, res) {
     try {
       const title = new RegExp(req.params.title, "i");
-      const post = await Post.find({title}).populate({ path: "userId", select: { name: 1, email: 1 } })
-      .populate({
-        path: "comments",
-        select: { body: 1 },
-        populate: { path: "userId", select: { name: 1 } },
-      });
-     
+      const post = await Post.find({ title })
+        .populate({ path: "userId", select: { name: 1, email: 1 } })
+        .populate({
+          path: "comments",
+          select: { body: 1 },
+          populate: { path: "userId", select: { name: 1 } },
+        });
+
       if (post.length == 0) {
-          return res.status(200).send({
+        return res.status(200).send({
           message: "No hemos encontrado ningún resultado",
-        }) }   
-        
-      return res.status(200).send(post)
+        });
+      }
+
+      return res.status(200).send(post);
     } catch (error) {
       console.log(error);
       return res
@@ -167,27 +167,27 @@ const PostController = {
   },
   async like(req, res) {
     try {
-      const post = await Post.findOneAndUpdate(
+      let post = await Post.findOneAndUpdate(
         {
           _id: req.params._id,
-          likes: { $nin: req.user._id }
+          likes: { $nin: req.user._id },
         },
         { $push: { likes: req.user._id } },
         { new: true }
       );
 
-      if (post){
-      await User.findByIdAndUpdate(
-        req.user._id,
-        { $push: { likedPosts: req.params._id } },
-        { new: true }
-      );
-      res.send({ message: "Like añadido al post con éxito", post });
-    } else{
-      res.send({ message: "Ya le habías dado like antes"});
-    }
+      post = await post.populate({ path: "userId" })
 
-
+      if (post) {
+        await User.findByIdAndUpdate(
+          req.user._id,
+          { $push: { likedPosts: req.params._id } },
+          { new: true }
+        );
+        res.send({ message: "Like añadido al post con éxito", post });
+      } else {
+        res.send({ message: "Ya le habías dado like antes" });
+      }
     } catch (error) {
       console.error(error);
       res
@@ -200,22 +200,22 @@ const PostController = {
       const post = await Post.findOneAndUpdate(
         {
           _id: req.params._id,
-          likes: { _id: req.user._id }
+          likes: { _id: req.user._id },
         },
         { $pull: { likes: req.user._id } },
         { new: true }
       );
 
-      if (post){
-      await User.findByIdAndUpdate(
-        req.user._id,
-        { $pull: { likedPosts: req.params._id } },
-        { new: true }
-      );
-      res.send({ message: "Like retirado del post con éxito", post });
-    } else{
-      res.send({ message: "Ya habías quitado el like antes", post });
-    }
+      if (post) {
+        await User.findByIdAndUpdate(
+          req.user._id,
+          { $pull: { likedPosts: req.params._id } },
+          { new: true }
+        );
+        res.send({ message: "Like retirado del post con éxito", post });
+      } else {
+        res.send({ message: "Ya habías quitado el like antes", post });
+      }
     } catch (error) {
       console.error(error);
       res

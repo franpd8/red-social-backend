@@ -346,71 +346,44 @@ const UserController = {
     }
   },
   async follow(req, res) {
-    try {
-      if (req.params._id == req.user._id) {
-        return res.send({ message: "No puedes seguirte a ti mismo" });
-      } else {
-        const follower = await User.findOneAndUpdate(
-          {
-            _id: req.params._id,
-            followers: { $nin: req.user._id },
-          },
-          { $push: { followers: req.user._id } },
-          { new: true }
-        );
-
-        const user2 = await User.findOneAndUpdate(
-          {
-            _id: req.user._id
-          }, { $push: { following: req.params._id } },
-          { new: true }
-        )
-
-        if (follower) {
-          await User.findByIdAndUpdate(
-           {_id: req.user._id},
-            { $push: { following: req.params._id } },
-            { new: true }
-          );
-          return res.send({
-            message: "Ahora estás siguiendo a este usuario",
-            follower,
-          });
-        } else {
-          return res.send({ message: "Ya seguías a este usuario" });
-        }
+    if (req.params._id != req.user._id) {
+      try {
+          const followingUser = await User.findById(req.params._id)
+          if (!followingUser.followers.includes(req.user._id)) {
+               await User.findByIdAndUpdate(
+                  req.params._id, { $push: { followers: req.user._id } }, { new: true }
+              );
+               await User.findByIdAndUpdate(
+                  req.user._id, { $push: { following: req.params._id } }, { new: true }
+              );
+              res.status(201).send({ message: "You are now following ", followingUser});
+          } else {
+              res.status(400).send({ message: 'You are already following this user' })
+          }
+      } catch (error) {
+          console.log(error)
+          res.status(500).send({ message: "Some error happened while following this user" });
       }
-    } catch (error) {
-      console.error(error);
-      return res
-        .status(500)
-        .send({ message: `Ha habido un problema al seguir a este usuario ` });
-    }
+  } else {
+      res.status(400).send({ message: "This is you, you can't follow youself!" })
+  }
   },
   async unfollow(req, res) {
     try {
-      const follower = await User.findOneAndUpdate(
-        {
-          _id: req.params._id,
-          followers: { _id: req.user._id },
-        },
-        { $pull: { followers: req.user._id } },
-        { new: true }
-      );
-      if (follower) {
-        await User.findByIdAndUpdate(
-          req.user._id,
-          { $pull: { following: req.params._id } },
-          { new: true }
-        );
-        res.send({ message: "Has dejado de seguir a este usuario", follower });
+      const unfollowingUser = await User.findById(req.params._id)
+      if (unfollowingUser.followers.includes(req.user._id)) {
+         await User.findByIdAndUpdate(
+              req.params._id, { $pull: { followers: req.user._id } }, { new: true },
+          );
+         await User.findByIdAndUpdate(
+              req.user._id, { $pull: { following: req.params._id } }, { new: true }
+          );
+          res.status(201).send({ message: "You are no longer following ", unfollowingUser });
       } else {
-        res.send({
-          message: "Ya habías dejado de seguir a este usuario",
-          post,
-        });
+          res.status(400).send({ message: 'You are not following',unfollowingUser })
       }
-    } catch (error) {
+
+  } catch (error) {
       console.error(error);
       res.status(500).send({
         message: `Ha habido un problema al dejar de seguir a este usuario`,

@@ -12,7 +12,7 @@ router.get('/name/:name', UserController.getByName)
 router.delete("/delete/:_id",authentication,  UserController.delete);
 router.put("/update/:_id", authentication, UserController.update);
 router.post("/login", UserController.login);
-router.put("/logout", authentication,UserController.logout);
+router.delete("/logout", authentication,UserController.logout);
 router.put('/follow/:_id', authentication, UserController.follow);
 router.put('/unfollow/:_id', authentication, UserController.unfollow);
 

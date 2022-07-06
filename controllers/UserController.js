@@ -81,18 +81,17 @@ const UserController = {
         .populate({
           path: "postIds",
           populate: {
-            path: "comments", 
+            path: "comments",
             populate: {
               path: "userId",
-             
             },
           },
         })
         .populate({
-          path: "followers"
+          path: "followers",
         })
         .populate({
-          path: "following"
+          path: "following",
         })
         .populate({
           path: "likedPosts",
@@ -171,13 +170,13 @@ const UserController = {
         // trae informacion de post propios
       )
         .populate({
-          path: "postIds"
+          path: "postIds",
         })
         .populate({
           path: "followers",
         })
         .populate({
-          path: "following"
+          path: "following",
         })
         // trae informacion del post que le gusta
         .populate({
@@ -186,7 +185,6 @@ const UserController = {
             path: "userId",
           },
         })
-
         .populate({
           path: "commentIds",
           select: {
@@ -213,7 +211,39 @@ const UserController = {
   },
   async getAll(req, res) {
     try {
-      const users = await User.find();
+      const users = await User.find()
+        .populate({
+          path: "postIds",
+          populate: {
+            path: "comments",
+            populate: {
+              path: "userId",
+            },
+          },
+        })
+        .populate({
+          path: "followers",
+        })
+        .populate({
+          path: "following",
+        })
+        .populate({
+          path: "likedPosts",
+          populate: {
+            path: "userId",
+          },
+        })
+        .populate({
+          path: "commentIds",
+          populate: {
+            path: "postId",
+            select: { title: 1, userId: 1 },
+            populate: {
+              path: "userId",
+              select: { name: 1 },
+            },
+          },
+        });
       if (users.length === 0) {
         res.send({ message: "Todavía no hay usuarios" });
       }
@@ -227,7 +257,38 @@ const UserController = {
   },
   async getById(req, res) {
     try {
-      const user = await User.findById(req.params._id);
+      const user = await User.findById(req.params._id).populate({
+        path: "postIds",
+        populate: {
+          path: "comments",
+          populate: {
+            path: "userId",
+          },
+        },
+      })
+      .populate({
+        path: "followers",
+      })
+      .populate({
+        path: "following",
+      })
+      .populate({
+        path: "likedPosts",
+        populate: {
+          path: "userId",
+        },
+      })
+      .populate({
+        path: "commentIds",
+        populate: {
+          path: "postId",
+          select: { title: 1, userId: 1 },
+          populate: {
+            path: "userId",
+            select: { name: 1 },
+          },
+        },
+      });;
       return res.send(user);
     } catch (error) {
       console.error(error);
@@ -298,9 +359,16 @@ const UserController = {
           { new: true }
         );
 
+        const user2 = await User.findOneAndUpdate(
+          {
+            _id: req.user._id
+          }, { $push: { following: req.params._id } },
+          { new: true }
+        )
+
         if (follower) {
           await User.findByIdAndUpdate(
-            req.user._id,
+           {_id: req.user._id},
             { $push: { following: req.params._id } },
             { new: true }
           );

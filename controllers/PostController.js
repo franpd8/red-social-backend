@@ -14,7 +14,7 @@ const PostController = {
       await User.findByIdAndUpdate(req.user._id, {
         $push: { postIds: post._id },
       });
-      res.status(201).send({ message: "Post añadido con éxito", post });
+      res.status(201).send({ message: "Post añadido con éxito", post});
     
       
     } catch (error) {

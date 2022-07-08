@@ -108,7 +108,7 @@ const PostController = {
       //   {$pull: { postIds: req.params._id },});
       // await Comment.deleteMany({postId:req.params._id});
 
-      res.send({ post, message: "Post eliminado con todo lo demás" });
+      res.send({  message: "Post eliminado con todo lo demás",post });
     } catch (error) {
       console.error(error);
       res
@@ -117,22 +117,18 @@ const PostController = {
     }
   },
   async update(req, res) {
-    console.log(req.file);
     try {
-      if (req.file) req.body.img = req.file.destination + req.file.filename;
       const post = await Post.findByIdAndUpdate(
         req.params._id,
         { ...req.body },
-        {
-          new: true,
-        }
-      );
+        { new: true }
+      ).populate({ path: "userId" })
       await User.findByIdAndUpdate(
         req.user._id,
         { $push: { likedPosts: req.params._id } },
         { new: true }
       );
-      res.send({ message: "Post actualizado con éxito", post });
+      res.status(201).send({ message: "Post actualizado con éxito", post });
     } catch (error) {
       console.error(error);
       res
@@ -195,9 +191,9 @@ const PostController = {
         .send({ message: `Ha habido un problema al dar like al post ` });
     }
   },
-  async unlike(req, res) {
+  async dislike(req, res) {
     try {
-      const post = await Post.findOneAndUpdate(
+      let post = await Post.findOneAndUpdate(
         {
           _id: req.params._id,
           likes: { _id: req.user._id },
@@ -205,6 +201,7 @@ const PostController = {
         { $pull: { likes: req.user._id } },
         { new: true }
       );
+      post = await post.populate({ path: "userId" })
 
       if (post) {
         await User.findByIdAndUpdate(

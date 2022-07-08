@@ -350,13 +350,13 @@ const UserController = {
       try {
           const followingUser = await User.findById(req.params._id)
           if (!followingUser.followers.includes(req.user._id)) {
-               await User.findByIdAndUpdate(
+              const userFollowed= await User.findByIdAndUpdate(
                   req.params._id, { $push: { followers: req.user._id } }, { new: true }
               );
-               await User.findByIdAndUpdate(
+              const userLogged= await User.findByIdAndUpdate(
                   req.user._id, { $push: { following: req.params._id } }, { new: true }
               );
-              res.status(201).send({ message: "You are now following ", followingUser});
+              res.status(201).send({ message: "You are now following ", followingUser,userFollowed,userLogged});
           } else {
               res.status(400).send({ message: 'You are already following this user' })
           }

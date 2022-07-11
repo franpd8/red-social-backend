@@ -334,7 +334,7 @@ const UserController = {
   },
   async update(req, res) {
     try {
-      const user = await User.findByIdAndUpdate(req.params._id, req.body, {
+      const user = await User.findByIdAndUpdate(req.params._id, { ...req.body }, {
         new: true,
       });
       return res.send({ message: "usuario actualizado con éxito", user });
@@ -350,13 +350,15 @@ const UserController = {
       try {
           const followingUser = await User.findById(req.params._id)
           if (!followingUser.followers.includes(req.user._id)) {
-              const userFollowed= await User.findByIdAndUpdate(
+              let userFollowed = await User.findByIdAndUpdate(
                   req.params._id, { $push: { followers: req.user._id } }, { new: true }
               );
+              userFollowed = await userFollowed.populate({path: "followers"})
+
               const userLogged= await User.findByIdAndUpdate(
                   req.user._id, { $push: { following: req.params._id } }, { new: true }
               );
-              res.status(201).send({ message: "You are now following ", followingUser,userFollowed,userLogged});
+              res.status(201).send({ message: "You are now following: " + userFollowed.name,userFollowed,userLogged});
           } else {
               res.status(400).send({ message: 'You are already following this user' })
           }
@@ -372,15 +374,16 @@ const UserController = {
     try {
       const unfollowingUser = await User.findById(req.params._id)
       if (unfollowingUser.followers.includes(req.user._id)) {
-         await User.findByIdAndUpdate(
+         let userUnfollowed = await User.findByIdAndUpdate(
               req.params._id, { $pull: { followers: req.user._id } }, { new: true },
           );
-         await User.findByIdAndUpdate(
+          userUnfollowed = await userUnfollowed.populate({path: "followers"})
+         let userLogged = await User.findByIdAndUpdate(
               req.user._id, { $pull: { following: req.params._id } }, { new: true }
           );
-          res.status(201).send({ message: "You are no longer following ", unfollowingUser });
+          res.status(201).send({ message: "You are no longer following: " + userUnfollowed.name, userUnfollowed, userLogged });
       } else {
-          res.status(400).send({ message: 'You are not following',unfollowingUser })
+          res.status(400).send({ message: "You never follow "+ unfollowingUser.name+ " before",unfollowingUser })
       }
 
   } catch (error) {

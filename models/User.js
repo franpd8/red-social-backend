@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: [true,'Introduzca una contraseña']
     },
+    alias:{type:String},
     avatar:{type:String},
     header:{type:String},
     link:{type:String},

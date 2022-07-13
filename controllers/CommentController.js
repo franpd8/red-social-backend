@@ -5,7 +5,7 @@ const Comment = require("../models/Comment");
 const CommentController = {
   async create(req, res) {
     try {
-      const comment = await Comment.create({
+      let comment = await Comment.create({
         ...req.body,
         userId: req.user._id,
         postId: req.body.postId,
@@ -16,6 +16,7 @@ const CommentController = {
       await Post.findByIdAndUpdate(req.body.postId, {
         $push: { comments: comment._id },
       });
+      comment  = await comment.populate({path:"userId", select:{_id:1,name:1,alias:1,avatar:1}})
       res
         .status(201)
         .send({ message: "Comentario añadido con éxito", comment });

@@ -45,7 +45,7 @@ const UserController = {
 
       res.status(201).send({
         // message: "Te hemos enviado un correo para confirmar el registro",
-        message: "Gracias por registrarte",
+        message: "Thank you for register!",
         user,
       });
     } catch (error) {
@@ -112,14 +112,14 @@ const UserController = {
         });
       if (!user) {
         return res.status(400).send({
-          message: "Usuario no encontrado: Usuario o contraseña incorrectos",
+          message: "User not found: Username or password not found",
         });
       }
       // 2 - confirmar contraseña
       const isMatch = await bcrypt.compare(req.body.password, user.password);
       if (!isMatch) {
         returnres.status(400).send({
-          message: "Error de datos: Usuario o contraseña incorrectos",
+          message: "Wrong credentials",
         });
       }
       //  3- opcional confirmar email
@@ -140,14 +140,12 @@ const UserController = {
       // 5 - bienvenida
       return res.send({
         token,
-        message: "¡Cuánto tiempo sin verte " + user.name,
+        message: "Welcome" + user.name + " !",
         user,
       });
     } catch (err) {
       console.log(err);
-      return res
-        .status(500)
-        .send({ message: `Ha habido un problema al conectarse` });
+      return res.status(500).send({ message: `There was an erorr login in` });
     }
   },
   async logout(req, res) {
@@ -155,20 +153,17 @@ const UserController = {
       const user = await User.findByIdAndUpdate(req.user._id, {
         $pull: { tokens: req.headers.authorization },
       });
-      return res.send({ message: "Desconectado con éxito " + user.name });
+      return res.send({ message: "Logout succesfully " + user.name });
     } catch (error) {
       console.error(error);
       return res.status(500).send({
-        message: "Hubo un problema al intentar desconectar al usuario",
+        message: "There was an error trying to logout",
       });
     }
   },
   async getUser(req, res) {
     try {
-      const user = await User.findOne(
-        { _id: req.user._id }
-        // trae informacion de post propios
-      )
+      const user = await User.findOne({ _id: req.user._id })
         .populate({
           path: "postIds",
         })
@@ -178,7 +173,6 @@ const UserController = {
         .populate({
           path: "following",
         })
-        // trae informacion del post que le gusta
         .populate({
           path: "likedPosts",
           populate: {
@@ -205,7 +199,7 @@ const UserController = {
     } catch (error) {
       console.error(error);
       return res.status(500).send({
-        message: "Ha habido un problema al cargar la información del usuarios",
+        message: "There was an error loading user data",
       });
     }
   },
@@ -245,62 +239,63 @@ const UserController = {
           },
         });
       if (users.length === 0) {
-        res.send({ message: "Todavía no hay usuarios" });
+        res.send({ message: "There aren't users yet" });
       }
       return res.send(users);
     } catch (error) {
       console.error(error);
       return res
         .status(500)
-        .send({ message: "Ha habido un problema al cargar los usuarios" });
+        .send({ message: "There was an error loading users" });
     }
   },
   async getById(req, res) {
     try {
-      const user = await User.findById(req.params._id).populate({
-        path: "postIds",
-        populate: {
-          path: "comments",
+      const user = await User.findById(req.params._id)
+        .populate({
+          path: "postIds",
+          populate: {
+            path: "comments",
+            populate: {
+              path: "userId",
+            },
+          },
+        })
+        .populate({
+          path: "followers",
+        })
+        .populate({
+          path: "following",
+        })
+        .populate({
+          path: "likedPosts",
           populate: {
             path: "userId",
           },
-        },
-      })
-      .populate({
-        path: "followers",
-      })
-      .populate({
-        path: "following",
-      })
-      .populate({
-        path: "likedPosts",
-        populate: {
-          path: "userId",
-        },
-      })
-      .populate({
-        path: "commentIds",
-        populate: {
-          path: "postId",
-          select: { title: 1, userId: 1 },
+        })
+        .populate({
+          path: "commentIds",
           populate: {
-            path: "userId",
-            select: { name: 1 },
+            path: "postId",
+            select: { title: 1, userId: 1 },
+            populate: {
+              path: "userId",
+              select: { name: 1 },
+            },
           },
-        },
-      });;
+        });
       return res.send(user);
     } catch (error) {
       console.error(error);
       return res.status(500).send({
-        message: `Ha habido un problema al buscar el usuario con id = ${req.params._id}`,
+        message: `There was an error while looking for user with id: ${req.params._id}`,
       });
     }
   },
   async getByName(req, res) {
     try {
       if (req.params.name.length > 20) {
-        return res.status(400).send("Busqueda demasiado larga");
+        return res.status(400).send("Search too long ");
       }
       const name = new RegExp(req.params.name, "i");
       const user = await User.find({ name: name });
@@ -309,7 +304,7 @@ const UserController = {
       console.log(error);
       return res
         .status(500)
-        .send({ message: `Ha habido un problema al buscar el usuario` });
+        .send({ message: `There was an error looking for the user` });
     }
   },
   async delete(req, res) {
@@ -320,7 +315,7 @@ const UserController = {
 
       return res.send({
         user,
-        message: "Usuario eliminado: bye bye " + user.name,
+        message: "User deleted: bye bye " + user.name,
       });
 
       // const posts = await Post.findById({userId:req.params._id});
@@ -329,67 +324,143 @@ const UserController = {
       console.error(error);
       return res
         .status(500)
-        .send({ message: "Ha habido un problema al eliminar el usuario" });
+        .send({ message: "There was an error deleting the user" });
     }
   },
   async update(req, res) {
     try {
-      const user = await User.findByIdAndUpdate(req.params._id, { ...req.body }, {
-        new: true,
-      });
-      return res.send({ message: "usuario actualizado con éxito", user });
+      const user = await User.findByIdAndUpdate(
+        req.params._id,
+        { ...req.body },
+        {
+          new: true,
+        }
+      );
+      return res.send({ message: "User updated succesfully", user });
     } catch (error) {
       console.error(error);
       return res
         .status(500)
-        .send({ message: "Ha habido un problema al actualizar el usuario" });
+        .send({ message: "There was an error updating the user" });
     }
   },
   async follow(req, res) {
     if (req.params._id != req.user._id) {
       try {
-          const followingUser = await User.findById(req.params._id)
-          if (!followingUser.followers.includes(req.user._id)) {
-              let userFollowed = await User.findByIdAndUpdate(
-                  req.params._id, { $push: { followers: req.user._id } }, { new: true }
-              );
-              userFollowed = await userFollowed.populate({path: "followers"})
+        const followingUser = await User.findById(req.params._id);
+        if (!followingUser.followers.includes(req.user._id)) {
+          let userFollowed = await User.findByIdAndUpdate(
+            req.params._id,
+            { $push: { followers: req.user._id } },
+            { new: true }
+          ).populate({
+              path: "followers",
+            })
+            .populate({
+              path: "following",
+            })
+            .populate({
+              path: "likedPosts",
+              populate: {
+                path: "userId",
+              },
+            })
+            .populate({
+              path: "commentIds",
+              populate: {
+                path: "postId",
+                select: { title: 1, userId: 1 },
+                populate: {
+                  path: "userId",
+                  select: { name: 1 },
+                },
+              },
+            });
 
-              const userLogged= await User.findByIdAndUpdate(
-                  req.user._id, { $push: { following: req.params._id } }, { new: true }
-              );
-              res.status(201).send({ message: "You are now following: " + userFollowed.name,userFollowed,userLogged});
-          } else {
-              res.status(400).send({ message: 'You are already following this user' })
-          }
+          const userLogged = await User.findByIdAndUpdate(
+            req.user._id,
+            { $push: { following: req.params._id } },
+            { new: true }
+          );
+          res
+            .status(201)
+            .send({
+              message: "You are now following: " + userFollowed.name,
+              userFollowed,
+              userLogged,
+            });
+        } else {
+          res
+            .status(400)
+            .send({ message: "You are already following this user" });
+        }
       } catch (error) {
-          console.log(error)
-          res.status(500).send({ message: "Some error happened while following this user" });
+        console.log(error);
+        res
+          .status(500)
+          .send({ message: "Some error happened while following this user" });
       }
-  } else {
-      res.status(400).send({ message: "This is you, you can't follow youself!" })
-  }
+    } else {
+      res
+        .status(400)
+        .send({ message: "This is you, you can't follow youself!" });
+    }
   },
   async unfollow(req, res) {
     try {
-      const unfollowingUser = await User.findById(req.params._id)
+      const unfollowingUser = await User.findById(req.params._id);
       if (unfollowingUser.followers.includes(req.user._id)) {
-         let userUnfollowed = await User.findByIdAndUpdate(
-              req.params._id, { $pull: { followers: req.user._id } }, { new: true },
-          );
-          userUnfollowed = await userUnfollowed.populate({path: "followers"})
-         let userLogged = await User.findByIdAndUpdate(
-              req.user._id, { $pull: { following: req.params._id } }, { new: true }
-          );
-          res.status(201).send({ message: "You are no longer following: " + userUnfollowed.name, userUnfollowed, userLogged });
+        let userUnfollowed = await User.findByIdAndUpdate(
+          req.params._id,
+          { $pull: { followers: req.user._id } },
+          { new: true }
+        ).populate({
+            path: "followers",
+          })
+          .populate({
+            path: "following",
+          })
+          .populate({
+            path: "likedPosts",
+            populate: {
+              path: "userId",
+            },
+          })
+          .populate({
+            path: "commentIds",
+            populate: {
+              path: "postId",
+              select: { title: 1, userId: 1 },
+              populate: {
+                path: "userId",
+                select: { name: 1 },
+              },
+            },
+          });
+        let userLogged = await User.findByIdAndUpdate(
+          req.user._id,
+          { $pull: { following: req.params._id } },
+          { new: true }
+        );
+        res
+          .status(201)
+          .send({
+            message: "You are no longer following: " + userUnfollowed.name,
+            userUnfollowed,
+            userLogged,
+          });
       } else {
-          res.status(400).send({ message: "You never follow "+ unfollowingUser.name+ " before",unfollowingUser })
+        res
+          .status(400)
+          .send({
+            message: "You never follow " + unfollowingUser.name + " before",
+            unfollowingUser,
+          });
       }
-
-  } catch (error) {
+    } catch (error) {
       console.error(error);
       res.status(500).send({
-        message: `Ha habido un problema al dejar de seguir a este usuario`,
+        message: `There was an error trying to unfollow this user`,
       });
     }
   },

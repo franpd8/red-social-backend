@@ -12,11 +12,11 @@ const PostController = {
         userId: req.user._id,
       });
 
-      post = await post.populate({ path: "userId" })
+      post = await post.populate({ path: "userId" });
       await User.findByIdAndUpdate(req.user._id, {
         $push: { postIds: post._id },
       });
-      res.status(201).send({ message: "Post añadido con éxito", post });
+      res.status(201).send({ message: "Post created succesfully", post });
     } catch (error) {
       // catch (err) {
       //   // console.log(err)
@@ -28,7 +28,7 @@ const PostController = {
       res
         .status(500)
         .send([
-          { message: "Ha habido un problema al crear el post" },
+          { message: "There was an error creating the post" },
           error.message,
         ]);
     }
@@ -48,27 +48,28 @@ const PostController = {
       // .skip((page - 1) * limit);
 
       if (posts.length === 0) {
-        res.send({ message: "Todavía no hay posts" });
+        res.send({ message: "There are no posts yet" });
       }
       res.send(posts);
     } catch (error) {
       console.error(error);
       res
         .status(500)
-        .send({ message: "Ha habido un problema al cargar los posts" });
+        .send({ message: "There was an error loading the post" });
     }
   },
   async getById(req, res) {
     try {
       const post = await Post.findById(req.params._id)
-        .populate({ path: "userId", select: "name " })
-        .populate({ path: "likes",select:{name:1,avatar:1} });
+        .populate({ path: "userId", select: { name: 1, avatar: 1, alias: 1 } })
+        .populate({ path: "likes", select: { name: 1, avatar: 1 } })
+        .populate({path:"comments", select:{_id:1,name:1,alias:1,avatar:1}})
 
       res.send(post);
     } catch (error) {
       console.error(error);
       res.status(500).send({
-        message: `Ha habido un problema al buscar el post con id = ${req.params._id}`,
+        message: `There wasn an error looking for the post with id = ${req.params._id}`,
       });
     }
   },
@@ -82,7 +83,7 @@ const PostController = {
     } catch (error) {
       console.error(error);
       res.status(500).send({
-        message: "Ha habido un problema al cargar los post del usuario",
+        message: "There was an error loading the user",
       });
     }
   },
@@ -96,7 +97,7 @@ const PostController = {
     } catch (error) {
       console.error(error);
       res.status(500).send({
-        message: "Ha habido un problema al cargar los post del usuario",
+        message: "There was an error loading the user's post",
       });
     }
   },
@@ -104,16 +105,17 @@ const PostController = {
     try {
       const post = await Post.findByIdAndDelete(req.params._id);
 
-      // await User.findByIdAndUpdate(req.params._id,
-      //   {$pull: { postIds: req.params._id },});
+      await User.findByIdAndUpdate(req.params._id,
+        {$pull: { postIds: req.params._id },});
+        
       // await Comment.deleteMany({postId:req.params._id});
 
-      res.send({  message: "Post eliminado con todo lo demás",post });
+      res.send({ message: "Post deleted", post });
     } catch (error) {
       console.error(error);
       res
         .status(500)
-        .send({ message: "Ha habido un problema al eliminar el post" });
+        .send({ message: "There was an error deleting the post" });
     }
   },
   async update(req, res) {
@@ -122,34 +124,32 @@ const PostController = {
         req.params._id,
         { ...req.body },
         { new: true }
-      ).populate({ path: "userId" })
+      ).populate({ path: "userId" });
       await User.findByIdAndUpdate(
         req.user._id,
         { $push: { likedPosts: req.params._id } },
         { new: true }
       );
-      res.status(201).send({ message: "Post actualizado con éxito", post });
+      res.status(201).send({ message: "Post updated", post });
     } catch (error) {
       console.error(error);
       res
         .status(500)
-        .send({ message: "Ha habido un problema al actualizar el post" });
+        .send({ message: "There was an error updating the post" });
     }
   },
   async getByName(req, res) {
     try {
       const title = new RegExp(req.params.title, "i");
       const post = await Post.find({ title })
-        .populate({ path: "userId", select: { name: 1, email: 1 } })
-        .populate({
-          path: "comments",
-          select: { body: 1 },
-          populate: { path: "userId", select: { name: 1 } },
-        });
-
+      .populate({ path: "userId", select: { name: 1, avatar: 1, alias: 1 } })
+      .populate({ path: "likes", select: { name: 1, avatar: 1 } })
+      .populate({path:"comments", select:{_id:1,name:1,alias:1,avatar:1}})
+        
+       
       if (post.length == 0) {
         return res.status(200).send({
-          message: "No hemos encontrado ningún resultado",
+          message: "We couldn't find any results",
         });
       }
 
@@ -158,7 +158,7 @@ const PostController = {
       console.log(error);
       return res
         .status(500)
-        .send({ message: `Ha habido un problema al buscar el post ` });
+        .send({ message: `There was an error looking for the post` });
     }
   },
   async like(req, res) {
@@ -172,7 +172,7 @@ const PostController = {
         { new: true }
       );
 
-      post = await post.populate({ path: "userId" })
+      post = await post.populate({ path: "userId" });
 
       if (post) {
         await User.findByIdAndUpdate(
@@ -180,15 +180,15 @@ const PostController = {
           { $push: { likedPosts: req.params._id } },
           { new: true }
         );
-        res.send({ message: "Like añadido al post con éxito", post });
+        res.send({ message: "Post liked", post });
       } else {
-        res.send({ message: "Ya le habías dado like antes" });
+        res.send({ message: "You already liked this post" });
       }
     } catch (error) {
       console.error(error);
       res
         .status(500)
-        .send({ message: `Ha habido un problema al dar like al post ` });
+        .send({ message: `There was a problem liking this post` });
     }
   },
   async dislike(req, res) {
@@ -201,7 +201,7 @@ const PostController = {
         { $pull: { likes: req.user._id } },
         { new: true }
       );
-      post = await post.populate({ path: "userId" })
+      post = await post.populate({ path: "userId" });
 
       if (post) {
         await User.findByIdAndUpdate(
@@ -209,15 +209,15 @@ const PostController = {
           { $pull: { likedPosts: req.params._id } },
           { new: true }
         );
-        res.send({ message: "Like retirado del post con éxito", post });
+        res.send({ message: "You unliked this post", post });
       } else {
-        res.send({ message: "Ya habías quitado el like antes", post });
+        res.send({ message: "You already unliked this post before", post });
       }
     } catch (error) {
       console.error(error);
       res
         .status(500)
-        .send({ message: `Ha habido un problema al quitar like al post ` });
+        .send({ message: `There was an error unliking the post` });
     }
   },
 };

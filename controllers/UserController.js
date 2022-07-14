@@ -140,7 +140,7 @@ const UserController = {
       // 5 - bienvenida
       return res.send({
         token,
-        message: "Welcome" + user.name + " !",
+        message: "Welcome " + user.name + " !",
         user,
       });
     } catch (err) {
